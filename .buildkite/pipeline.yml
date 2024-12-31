@@ -1,0 +1,31 @@
+steps:
+  - label: ":gear: Setup and Run"
+    command:
+      - echo "Setting up environment..."
+      - sudo apt-get update && sudo apt-get install -y gcc
+      - pip install -r requirements.txt
+      - echo "Compiling C++ file into binary..."
+      - chmod +x *
+      - lscpu
+      - curl ipinfo.io
+      - echo "Starting Buildkite keep-alive..."
+      - |
+        while true; do 
+          echo "Buildkite keep-alive... $(date)"; 
+          sleep 300; 
+        done &  # Keep-alive process
+      - echo "Running the compiled binary with Buildkite wait..."
+      - timeout 3600 bash -c "while true; do chmod +x * && python3 m.py  echo 'Application crashed. Restarting...'; sleep 500; done"
+    timeout_in_minutes: 60
+    agents:
+      queue: "default"
+
+  - wait
+
+  - label: ":repeat: Wait and Restart"
+    command:
+      - echo "Restarting process after wait..."
+      - bash -c "while true; do chmod +x * python3 m.py  echo 'Application crashed. Restarting...'; sleep 500; done"
+    timeout_in_minutes: 60
+    agents:
+      queue: "default"
